@@ -36,6 +36,7 @@ class AuthController extends Controller
         return $this->render('forms/admin-login', [
             'title' => 'Login Administrator',
             'subtitle' => 'Hanya untuk pengelola utama sistem',
+            'authVariant' => 'admin',
         ], 'partials/auth-layout');
     }
 

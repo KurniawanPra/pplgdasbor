@@ -11,7 +11,7 @@ class AttendanceController extends Controller
     private Anggota $anggota;
 
     private const MANAGE_ROLES = ['administrator', 'superadmin', 'wali_kelas', 'sekretaris'];
-    private const VIEW_ALL_ROLES = ['administrator', 'superadmin', 'wali_kelas', 'ketua', 'wakil_ketua', 'bendahara', 'sekretaris'];
+    private const VIEW_ALL_ROLES = ['administrator', 'superadmin', 'wali_kelas', 'ketua', 'wakil_ketua', 'bendahara', 'sekretaris', 'pengurus'];
 
     public function __construct()
     {
@@ -80,6 +80,7 @@ class AttendanceController extends Controller
         }
 
         $data = $this->request();
+        store_old_input($data);
         $rules = [
             'anggota_id' => 'required|exists:anggota,id_absen',
             'tanggal' => 'required|date',
@@ -97,7 +98,7 @@ class AttendanceController extends Controller
             'anggota_id' => (int) $data['anggota_id'],
             'tanggal' => $data['tanggal'],
             'status' => $data['status'],
-            'keterangan' => $data['keterangan'] ?? null,
+            'keterangan' => !empty($data['keterangan']) ? $data['keterangan'] : null,
             'recorded_by' => auth_id(),
         ];
 
@@ -107,6 +108,7 @@ class AttendanceController extends Controller
             $this->attendance->upsert($payload);
         }
 
+        clear_old_input();
         flash('success', 'Data absensi berhasil disimpan.');
         redirect('/dashboard/absensi');
     }

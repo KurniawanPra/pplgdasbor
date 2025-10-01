@@ -17,7 +17,7 @@
     </div>
     <button type="submit" class="btn btn-primary w-100">Masuk</button>
     <div class="text-center">
-        <small class="text-muted">Admin? <a href="/admin/login">Login di sini</a></small>
+        <small class="text-muted">Akses administrator bersifat privat. Hubungi pengelola jika diperlukan.</small>
     </div>
 </form>
 

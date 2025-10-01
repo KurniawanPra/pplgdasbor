@@ -69,12 +69,16 @@ function validate_email(string $field, $value, array $params, array $data): bool
 function validate_min(string $field, $value, array $params, array $data): bool|string
 {
     $min = (int) ($params[0] ?? 0);
-    if (is_string($value) && mb_strlen($value) < $min) {
-        return ucfirst(str_replace('_', ' ', $field)) . " minimal {$min} karakter.";
+
+    if (is_numeric($value)) {
+        if ((float) $value < $min) {
+            return ucfirst(str_replace('_', ' ', $field)) . " minimal {$min}.";
+        }
+        return true;
     }
 
-    if (!is_string($value) && is_numeric($value) && $value < $min) {
-        return ucfirst(str_replace('_', ' ', $field)) . " minimal {$min}.";
+    if (is_string($value) && mb_strlen($value) < $min) {
+        return ucfirst(str_replace('_', ' ', $field)) . " minimal {$min} karakter.";
     }
 
     return true;
@@ -83,12 +87,16 @@ function validate_min(string $field, $value, array $params, array $data): bool|s
 function validate_max(string $field, $value, array $params, array $data): bool|string
 {
     $max = (int) ($params[0] ?? PHP_INT_MAX);
-    if (is_string($value) && mb_strlen($value) > $max) {
-        return ucfirst(str_replace('_', ' ', $field)) . " maksimal {$max} karakter.";
+
+    if (is_numeric($value)) {
+        if ((float) $value > $max) {
+            return ucfirst(str_replace('_', ' ', $field)) . " maksimal {$max}.";
+        }
+        return true;
     }
 
-    if (!is_string($value) && is_numeric($value) && $value > $max) {
-        return ucfirst(str_replace('_', ' ', $field)) . " maksimal {$max}.";
+    if (is_string($value) && mb_strlen($value) > $max) {
+        return ucfirst(str_replace('_', ' ', $field)) . " maksimal {$max} karakter.";
     }
 
     return true;

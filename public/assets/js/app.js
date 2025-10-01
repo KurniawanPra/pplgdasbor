@@ -308,7 +308,9 @@ async function loadAnggota(page) {
     }
 
     try {
-        const response = await fetch(`/api/anggota?${params.toString()}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        const endpoint = new URL('api/anggota', window.location.href);
+        endpoint.search = params.toString();
+        const response = await fetch(endpoint.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
         if (!response.ok) {
             throw new Error('Gagal memuat data');
         }
@@ -436,7 +438,10 @@ async function loadGallery(page) {
     listEl.innerHTML = '<div class="col-12"><div class="ajax-loading">Memuat galeri...</div></div>';
 
     try {
-        const response = await fetch(`/api/gallery?page=${page}&limit=6`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        const endpoint = new URL('api/gallery', window.location.href);
+        endpoint.searchParams.set('page', String(page));
+        endpoint.searchParams.set('limit', '6');
+        const response = await fetch(endpoint.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
         if (!response.ok) {
             throw new Error('Gagal memuat galeri');
         }

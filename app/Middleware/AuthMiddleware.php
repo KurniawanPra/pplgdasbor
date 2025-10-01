@@ -12,7 +12,7 @@ class AuthMiddleware
 
         $redirect = $params[0] ?? '/login';
         if ($redirect === 'admin') {
-            $redirect = '/admin/login';
+            $redirect = '/system/super/login';
         }
 
         flash('error', 'Silakan login terlebih dahulu.');
