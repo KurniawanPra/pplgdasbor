@@ -15,7 +15,7 @@ class Roster
 
     public function getAll(): array
     {
-        $sql = 'SELECT * FROM roster ORDER BY FIELD(hari, "Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"), id ASC';
+        $sql = 'SELECT * FROM roster ORDER BY FIELD(hari, "Senin","Selasa","Rabu","Kamis","Jumat"), id ASC';
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll();
     }

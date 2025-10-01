@@ -7,10 +7,45 @@ use PDO;
 class Prestasi
 {
     private PDO $db;
+    private static bool $tableEnsured = false;
 
     public function __construct()
     {
         $this->db = db();
+        if (!self::$tableEnsured) {
+            $this->ensureTable();
+            self::$tableEnsured = true;
+        }
+    }
+
+    private function ensureTable(): void
+    {
+        $stmt = $this->db->query(
+            "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'prestasi'"
+        );
+        $exists = (int) $stmt->fetchColumn() > 0;
+
+        if ($exists) {
+            return;
+        }
+
+        $sql = <<<'SQL'
+CREATE TABLE IF NOT EXISTS prestasi (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    judul VARCHAR(255) NOT NULL,
+    deskripsi TEXT NULL,
+    penyelenggara VARCHAR(255) NULL,
+    tingkat VARCHAR(100) NULL,
+    tanggal DATE NULL,
+    lokasi VARCHAR(255) NULL,
+    created_by INT UNSIGNED NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_prestasi_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+SQL;
+
+        $this->db->exec($sql);
     }
 
     public function paginate(int $page, int $perPage, ?string $search = null): array

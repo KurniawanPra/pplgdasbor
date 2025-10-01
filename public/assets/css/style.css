@@ -553,56 +553,117 @@ body {
 
 
 
-.struktur-layout {
+
+.struktur-tree {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2.5rem;
+    gap: 3rem;
+    position: relative;
 }
 
-.struktur-row {
+.struktur-level {
+    width: 100%;
     display: flex;
-    gap: 1.5rem;
     justify-content: center;
-    flex-wrap: wrap;
+    gap: 2.5rem;
+    position: relative;
 }
 
-.struktur-row.duo {
-    gap: 2rem;
+.struktur-level:not(:first-child)::before {
+    content: '';
+    position: absolute;
+    top: -2.75rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 2.75rem;
+    background: linear-gradient(180deg, rgba(37, 99, 235, 0.35), rgba(79, 70, 229, 0.1));
 }
 
-.struktur-slot {
-    flex: 1 1 240px;
-    max-width: 260px;
+.struktur-level.level-branches {
+    gap: 3.5rem;
 }
 
-.struktur-card {
+.struktur-level.level-branches::after {
+    content: '';
+    position: absolute;
+    top: -1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(65%, 460px);
+    height: 2px;
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0), rgba(37, 99, 235, 0.45), rgba(37, 99, 235, 0));
+}
+
+.struktur-node {
+    flex: 0 1 260px;
+    max-width: 280px;
+    text-align: center;
+    position: relative;
     background: #ffffff;
-    border-radius: 1.5rem;
-    padding: 1.75rem 1.25rem 1.5rem;
-    box-shadow: 0 24px 45px rgba(15, 23, 42, 0.08);
+    border-radius: 1.75rem;
+    padding: 1.85rem 1.5rem 1.5rem;
+    box-shadow: 0 28px 55px rgba(15, 23, 42, 0.12);
     transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.struktur-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 28px 55px rgba(15, 23, 42, 0.12);
+.struktur-node.profile-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 32px 65px rgba(15, 23, 42, 0.16);
 }
 
-.struktur-card.kosong {
-    background: linear-gradient(135deg, rgba(37,99,235,0.08), rgba(79,70,229,0.1));
-    border: 1px dashed rgba(37, 99, 235, 0.4);
-    padding: 2rem 1.5rem;
+.struktur-node.has-children::after {
+    content: '';
+    position: absolute;
+    bottom: -2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 2.5rem;
+    background: linear-gradient(180deg, rgba(37, 99, 235, 0.35), rgba(79, 70, 229, 0));
+}
+
+.struktur-node.branch::before {
+    content: '';
+    position: absolute;
+    top: -1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 1.5rem;
+    background: linear-gradient(180deg, rgba(37, 99, 235, 0.4), rgba(79, 70, 229, 0));
+}
+
+.struktur-node.kosong {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(79, 70, 229, 0.1));
+    border: 1px dashed rgba(37, 99, 235, 0.35);
+    box-shadow: none;
+    padding: 2.25rem 1.5rem;
+}
+
+.struktur-node.kosong .struktur-label {
+    display: block;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 0.45rem;
+    color: #1d4ed8;
+}
+
+.struktur-node.kosong small {
+    color: #334155;
 }
 
 .struktur-avatar {
-    width: 130px;
-    height: 130px;
+    width: 120px;
+    height: 120px;
     border-radius: 32px;
     overflow: hidden;
-    margin-bottom: 1rem;
+    margin: 0 auto 1rem;
     border: 4px solid rgba(37, 99, 235, 0.12);
-    box-shadow: 0 12px 25px rgba(37, 99, 235, 0.15);
+    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.18);
 }
 
 .struktur-avatar img {
@@ -611,24 +672,58 @@ body {
     object-fit: cover;
 }
 
-.struktur-badge {
-    display: inline-block;
-    margin-bottom: 0.4rem;
+.struktur-role {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    background: rgba(37, 99, 235, 0.12);
+    color: #1d4ed8;
+    font-weight: 600;
     font-size: 0.8rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    font-weight: 600;
-    color: #2563eb;
+    margin-bottom: 0.6rem;
 }
 
-.struktur-card.kosong .struktur-label {
-    display: block;
+.struktur-name {
     font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    margin-bottom: 0.35rem;
-    color: #1e3a8a;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+    color: #0f172a;
+}
+
+.struktur-alias {
+    color: #64748b;
+    font-size: 0.95rem;
+}
+
+@media (max-width: 991.98px) {
+    .struktur-level.level-branches::after {
+        width: 70%;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .struktur-tree {
+        gap: 2.5rem;
+    }
+
+    .struktur-level {
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .struktur-level:not(:first-child)::before,
+    .struktur-level.level-branches::after {
+        display: none;
+    }
+
+    .struktur-node.has-children::after,
+    .struktur-node.branch::before {
+        display: none;
+    }
 }
 
 .anggota-search {
@@ -651,15 +746,6 @@ body {
 }
 
 @media (max-width: 767.98px) {
-    .struktur-layout {
-        gap: 1.75rem;
-    }
-    .struktur-slot {
-        max-width: 100%;
-    }
-    .struktur-card {
-        padding: 1.5rem 1rem;
-    }
     .struktur-avatar {
         width: 110px;
         height: 110px;
