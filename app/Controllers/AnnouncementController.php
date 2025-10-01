@@ -8,7 +8,7 @@ class AnnouncementController extends Controller
 {
     private Announcement $announcements;
 
-    private const MANAGE_ROLES = ['administrator', 'superadmin', 'wali_kelas', 'ketua', 'wakil_ketua', 'bendahara', 'sekretaris'];
+    private const MANAGE_ROLES = ['administrator', 'superadmin', 'wali_kelas', 'ketua', 'wakil_ketua', 'bendahara', 'sekretaris', 'pengurus'];
 
     public function __construct()
     {
@@ -84,6 +84,7 @@ class AnnouncementController extends Controller
         }
 
         $data = $this->request();
+        store_old_input($data);
         $rules = [
             'judul' => 'required|max:150',
             'isi' => 'required',
@@ -101,7 +102,7 @@ class AnnouncementController extends Controller
             'judul' => $data['judul'],
             'isi' => $data['isi'],
             'audience' => $data['audience'],
-            'published_at' => $data['published_at'] ?? null,
+            'published_at' => !empty($data['published_at']) ? $data['published_at'] : null,
             'created_by' => auth_id(),
         ];
 
@@ -111,6 +112,7 @@ class AnnouncementController extends Controller
             $this->announcements->create($payload);
         }
 
+        clear_old_input();
         flash('success', 'Pengumuman berhasil disimpan.');
         redirect('/dashboard/pengumuman');
     }

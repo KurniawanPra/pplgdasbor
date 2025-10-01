@@ -36,9 +36,7 @@ $galleryPagination = $galleryPagination ?? null;
                             <div class="small fw-semibold mb-0"><?= e(auth_name() ?? '') ?></div>
                             <div class="small text-muted text-capitalize"><?= e(str_replace('_', ' ', auth_role() ?? '')) ?></div>
                         </div>
-                        <?php if (auth_has_role(['superadmin', 'pengurus'])): ?>
-                            <a href="/dashboard" class="btn btn-outline-primary btn-sm">Dashboard</a>
-                        <?php endif; ?>
+                        <a href="/dashboard" class="btn btn-outline-primary btn-sm">Dashboard</a>
                         <a href="/logout" class="btn btn-danger btn-sm">Logout</a>
                     </div>
                 <?php else: ?>
@@ -192,7 +190,7 @@ $galleryPagination = $galleryPagination ?? null;
                 </div>
             </div>
         </form>
-<div id="anggotaList" class="row g-4 mt-4">
+        <div id="anggotaList" class="row g-4 mt-4">
             <?php if (!empty($anggota)): ?>
                 <?php foreach ($anggota as $member): ?>
                     <?php
@@ -281,8 +279,8 @@ $galleryPagination = $galleryPagination ?? null;
                             </tr>
                         </thead>
                         <tbody>
-                            <?php $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']; ?>
-                            <?php foreach ($days as $day): ?>
+                            <?php $piketDays = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']; ?>
+                            <?php foreach ($piketDays as $day): ?>
                                 <?php $list = $piket[$day] ?? []; ?>
                                 <tr>
                                     <td class="fw-semibold"><?= e($day) ?></td>
@@ -310,8 +308,9 @@ $galleryPagination = $galleryPagination ?? null;
                             </tr>
                         </thead>
                         <tbody>
+                            <?php $rosterDays = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat']; ?>
                             <?php if (!empty($roster)): ?>
-                                <?php foreach ($days as $day): ?>
+                                <?php foreach ($rosterDays as $day): ?>
                                     <?php $mapel = array_filter($roster, fn($item) => $item['hari'] === $day); ?>
                                     <tr>
                                         <td class="fw-semibold"><?= e($day) ?></td>

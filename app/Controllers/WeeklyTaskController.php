@@ -8,7 +8,7 @@ class WeeklyTaskController extends Controller
 {
     private WeeklyTask $tasks;
 
-    private const EDIT_ROLES = ['administrator', 'superadmin', 'wali_kelas', 'ketua', 'wakil_ketua', 'bendahara', 'sekretaris'];
+    private const EDIT_ROLES = ['administrator', 'superadmin', 'wali_kelas', 'ketua', 'wakil_ketua', 'bendahara', 'sekretaris', 'pengurus'];
 
     public function __construct()
     {
@@ -17,16 +17,24 @@ class WeeklyTaskController extends Controller
 
     public function index(): string
     {
+        $query = $this->query();
         $page = current_page();
         $perPage = 12;
         $result = $this->tasks->paginate($page, $perPage);
         $pagination = build_pagination($result['total'], $perPage, $page);
+
+        $editItem = null;
+        if (!empty($query['edit']) && $this->canEdit()) {
+            $editId = (int) $query['edit'];
+            $editItem = $this->tasks->find($editId);
+        }
 
         return $this->render('dashboard/tasks/index', [
             'title' => 'Tugas Mingguan',
             'items' => $result['data'],
             'pagination' => $pagination,
             'canEdit' => $this->canEdit(),
+            'editItem' => $editItem,
         ], 'dashboard/layout');
     }
 
@@ -39,6 +47,7 @@ class WeeklyTaskController extends Controller
         }
 
         $data = $this->request();
+        store_old_input($data);
         $rules = [
             'judul' => 'required|max:150',
             'deskripsi' => 'nullable',
@@ -54,8 +63,8 @@ class WeeklyTaskController extends Controller
 
         $payload = [
             'judul' => $data['judul'],
-            'deskripsi' => $data['deskripsi'] ?? null,
-            'deadline' => $data['deadline'] ?? null,
+            'deskripsi' => !empty($data['deskripsi']) ? $data['deskripsi'] : null,
+            'deadline' => !empty($data['deadline']) ? $data['deadline'] : null,
             'is_completed' => !empty($data['is_completed']),
             'created_by' => auth_id(),
             'updated_by' => auth_id(),
@@ -67,6 +76,7 @@ class WeeklyTaskController extends Controller
             $this->tasks->create($payload);
         }
 
+        clear_old_input();
         flash('success', 'Tugas mingguan tersimpan.');
         redirect('/dashboard/tugas');
     }

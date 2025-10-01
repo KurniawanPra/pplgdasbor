@@ -1,4 +1,17 @@
-<?php $errors = flash('errors') ?? []; ?>
+<?php
+$errors = flash('errors') ?? [];
+$roleOptions = [
+    'administrator' => 'Administrator',
+    'superadmin' => 'Admin',
+    'wali_kelas' => 'Wali Kelas',
+    'ketua' => 'Ketua Kelas',
+    'wakil_ketua' => 'Wakil Ketua',
+    'bendahara' => 'Bendahara',
+    'sekretaris' => 'Sekretaris',
+    'pengurus' => 'Perangkat Kelas',
+    'anggota' => 'Anggota',
+];
+?>
 <div class="card border-0 shadow-sm">
     <div class="card-body">
         <h2 class="h5 fw-semibold mb-3">Tambah Pengguna</h2>
@@ -22,9 +35,9 @@
             <div class="col-md-6">
                 <label for="role" class="form-label">Role</label>
                 <select name="role" id="role" class="form-select <?= isset($errors['role']) ? 'is-invalid' : '' ?>" required>
-                    <option value="superadmin" <?= old('role') === 'superadmin' ? 'selected' : '' ?>>Admin</option>
-                    <option value="pengurus" <?= old('role', 'pengurus') === 'pengurus' ? 'selected' : '' ?>>Perangkat Kelas</option>
-                    <option value="anggota" <?= old('role') === 'anggota' ? 'selected' : '' ?>>Anggota</option>
+                    <?php foreach ($roleOptions as $value => $label): ?>
+                        <option value="<?= e($value) ?>" <?= old('role', 'pengurus') === $value ? 'selected' : '' ?>><?= e($label) ?></option>
+                    <?php endforeach; ?>
                 </select>
                 <?php if (isset($errors['role'])): ?><div class="invalid-feedback"><?= e($errors['role'][0]) ?></div><?php endif; ?>
             </div>
