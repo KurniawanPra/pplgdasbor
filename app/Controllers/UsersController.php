@@ -75,7 +75,7 @@ class UsersController extends Controller
             'username' => 'required|alpha_dash|min:4|max:20|unique:users,username',
             'email' => 'required|email|max:100|unique:users,email',
             'password' => 'required|password',
-            'role' => 'required|in:superadmin,pengurus,anggota',
+            'role' => 'required|in:administrator,superadmin,wali_kelas,ketua,wakil_ketua,bendahara,sekretaris,pengurus,anggota',
         ];
 
         $errors = validate($data, $rules);
@@ -136,7 +136,7 @@ class UsersController extends Controller
             'nama_lengkap' => 'required|max:100',
             'username' => 'required|alpha_dash|min:4|max:20|unique:users,username,' . $id . ',id',
             'email' => 'required|email|max:100|unique:users,email,' . $id . ',id',
-            'role' => 'required|in:superadmin,pengurus,anggota',
+            'role' => 'required|in:administrator,superadmin,wali_kelas,ketua,wakil_ketua,bendahara,sekretaris,pengurus,anggota',
         ];
 
         if (!empty($data['password'])) {

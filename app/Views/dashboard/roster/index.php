@@ -9,7 +9,7 @@
                     <div>
                         <label for="hari" class="form-label">Hari</label>
                         <select name="hari" id="hari" class="form-select <?= isset($errors['hari']) ? 'is-invalid' : '' ?>" required>
-                            <?php $days = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu']; ?>
+                            <?php $days = ['Senin','Selasa','Rabu','Kamis','Jumat']; ?>
                             <?php foreach ($days as $day): ?>
                                 <option value="<?= e($day) ?>"><?= e($day) ?></option>
                             <?php endforeach; ?>

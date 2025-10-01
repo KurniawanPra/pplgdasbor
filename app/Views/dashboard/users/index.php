@@ -1,4 +1,14 @@
-<?php $roleLabels = ['superadmin' => 'Admin', 'pengurus' => 'Perangkat Kelas', 'anggota' => 'Anggota']; ?>
+<?php $roleLabels = [
+    'administrator' => 'Administrator',
+    'superadmin' => 'Admin',
+    'wali_kelas' => 'Wali Kelas',
+    'ketua' => 'Ketua Kelas',
+    'wakil_ketua' => 'Wakil Ketua',
+    'bendahara' => 'Bendahara',
+    'sekretaris' => 'Sekretaris',
+    'pengurus' => 'Perangkat Kelas',
+    'anggota' => 'Anggota',
+]; ?>
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
     <div>
         <h2 class="h4 fw-semibold mb-0">Manajemen Pengguna</h2>

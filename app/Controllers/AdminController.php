@@ -28,12 +28,16 @@ class AdminController extends Controller
 
         $perPage = 6;
         $page = current_page();
-        $search = trim($_GET['anggota_search'] ?? '') ?: null;
+        $searchInput = $_GET['anggota_search'] ?? $_GET['q'] ?? '';
+        $search = trim((string) $searchInput) ?: null;
         $anggotaData = $anggotaModel->getLanding($perPage, $page, $search);
         $pagination = build_pagination($anggotaData['total'], $perPage, $page);
 
         $galleryPerPage = 6;
         $galleryPage = filter_input(INPUT_GET, 'gallery_page', FILTER_VALIDATE_INT, ['options' => ['default' => 1, 'min_range' => 1]]);
+        if (!$galleryPage || $galleryPage < 1) {
+            $galleryPage = 1;
+        }
         $galleryResult = $galleryModel->paginate($galleryPage, $galleryPerPage);
         $galleryPagination = build_pagination($galleryResult['total'], $galleryPerPage, $galleryPage);
 
@@ -98,7 +102,7 @@ class AdminController extends Controller
         $stats = [
             'total_anggota' => $anggotaModel->count(),
             'anggota_aktif' => $anggotaModel->count('aktif'),
-            'total_pengurus' => $userModel->countByRoles(['wali_kelas', 'ketua', 'wakil_ketua', 'bendahara', 'sekretaris']),
+            'total_pengurus' => $userModel->countByRoles(['wali_kelas', 'ketua', 'wakil_ketua', 'bendahara', 'sekretaris', 'pengurus']),
             'total_gallery' => $galleryModel->paginate(1, 1)['total'],
             'pesan_masuk' => $contactModel->paginate(1, 1)['total'],
             'total_prestasi' => $prestasiModel->count(),

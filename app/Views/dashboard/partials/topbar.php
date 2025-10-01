@@ -2,7 +2,13 @@
 $userName = auth_name() ?? 'Pengguna';
 $role = auth_role();
 $roleLabel = match ($role) {
+    'administrator' => 'Administrator',
     'superadmin' => 'Admin',
+    'wali_kelas' => 'Wali Kelas',
+    'ketua' => 'Ketua Kelas',
+    'wakil_ketua' => 'Wakil Ketua',
+    'bendahara' => 'Bendahara',
+    'sekretaris' => 'Sekretaris',
     'pengurus' => 'Perangkat Kelas',
     'anggota' => 'Anggota',
     default => 'Pengguna',
