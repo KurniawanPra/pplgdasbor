@@ -26,7 +26,7 @@ class RosterController extends Controller
     {
         $data = $this->request();
         $rules = [
-            'hari' => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
+            'hari' => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat',
             'nama_mapel' => 'required|max:100',
         ];
 
