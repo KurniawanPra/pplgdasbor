@@ -7,10 +7,50 @@ use PDO;
 class Spp
 {
     private PDO $db;
+    private static bool $tableEnsured = false;
 
     public function __construct()
     {
         $this->db = db();
+        if (!self::$tableEnsured) {
+            $this->ensureTable();
+            self::$tableEnsured = true;
+        }
+    }
+
+    private function ensureTable(): void
+    {
+        $stmt = $this->db->query(
+            "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'spp_records'"
+        );
+        $exists = (int) $stmt->fetchColumn() > 0;
+
+        if ($exists) {
+            return;
+        }
+
+        $sql = <<<'SQL'
+CREATE TABLE IF NOT EXISTS spp_records (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    anggota_id INT UNSIGNED NOT NULL,
+    bulan TINYINT UNSIGNED NOT NULL,
+    tahun SMALLINT UNSIGNED NOT NULL,
+    jumlah DECIMAL(10,2) NOT NULL DEFAULT 0,
+    status ENUM('belum','lunas','cicil') NOT NULL DEFAULT 'belum',
+    tanggal_bayar DATE NULL,
+    catatan VARCHAR(255) NULL,
+    created_by INT UNSIGNED NULL,
+    updated_by INT UNSIGNED NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_spp (anggota_id, bulan, tahun),
+    CONSTRAINT fk_spp_anggota FOREIGN KEY (anggota_id) REFERENCES anggota(id_absen) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_spp_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT fk_spp_updated_by FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+SQL;
+
+        $this->db->exec($sql);
     }
 
     public function paginate(int $page, int $perPage, ?int $anggotaId = null, ?int $year = null, ?int $month = null, ?string $keyword = null): array
