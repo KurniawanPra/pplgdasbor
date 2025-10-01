@@ -112,6 +112,14 @@ class SppController extends Controller
         }
 
         $data = $this->request();
+        $normalized = $data;
+        if (isset($normalized['jumlah'])) {
+            $digitsOnly = preg_replace('/[^0-9]/', '', (string) $normalized['jumlah']);
+            $normalized['jumlah'] = $digitsOnly !== '' ? $digitsOnly : '0';
+        }
+        unset($normalized['_token']);
+        store_old_input($normalized);
+
         $rules = [
             'anggota_id' => 'required|exists:anggota,id_absen',
             'bulan' => 'required|numeric|min:1|max:12',
@@ -121,11 +129,15 @@ class SppController extends Controller
             'tanggal_bayar' => 'nullable|date',
             'catatan' => 'nullable|max:255',
         ];
-        $errors = validate($data, $rules);
+        $errors = validate($normalized, $rules);
         if ($errors) {
             flash('errors', $errors);
             flash('error', 'Periksa kembali data SPP.');
-            redirect('/dashboard/spp');
+            $redirectUrl = '/dashboard/spp';
+            if (!empty($normalized['id'])) {
+                $redirectUrl .= '?edit=' . (int) $normalized['id'];
+            }
+            redirect($redirectUrl . '#form');
         }
 
         $payload = [
@@ -140,12 +152,20 @@ class SppController extends Controller
             'updated_by' => auth_id(),
         ];
 
-        if (!empty($data['id'])) {
-            $this->spp->update((int) $data['id'], $payload);
+        if ($payload['status'] === 'lunas' && empty($payload['tanggal_bayar'])) {
+            $payload['tanggal_bayar'] = date('Y-m-d');
+        }
+
+        if (!empty($
+                   
+                   
+                   ['id'])) {
+            $this->spp->update((int) $normalized['id'], $payload);
         } else {
             $this->spp->upsert($payload);
         }
 
+        clear_old_input();
         flash('success', 'Data SPP berhasil disimpan.');
         redirect('/dashboard/spp');
     }

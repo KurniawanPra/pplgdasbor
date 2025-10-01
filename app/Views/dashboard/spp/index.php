@@ -21,6 +21,7 @@ $canManage = $canManage ?? false;
 $anggotaOptions = $anggotaOptions ?? [];
 $matrix = $matrix ?? [];
 $matrixYear = $matrixYear ?? (int) date('Y');
+$errors = flash('errors') ?? [];
 $statusBadge = static function (?array $entry) {
     if (!$entry) {
         return '<span class="badge rounded-pill text-bg-light">-</span>';
@@ -112,49 +113,64 @@ $statusBadge = static function (?array $entry) {
                 <?php if ($editItem): ?>
                     <input type="hidden" name="id" value="<?= e($editItem['id']) ?>">
                 <?php endif; ?>
+                <?php $selectedAnggota = old('anggota_id', $editItem['anggota_id'] ?? ''); ?>
                 <div class="col-md-4">
                     <label class="form-label">Anggota</label>
-                    <select name="anggota_id" class="form-select" required>
+                    <select name="anggota_id" class="form-select <?= isset($errors['anggota_id']) ? 'is-invalid' : '' ?>" required>
                         <option value="">-- Pilih anggota --</option>
                         <?php foreach ($anggotaOptions as $anggotaOption): ?>
-                            <option value="<?= e($anggotaOption['id_absen']) ?>" <?= (int) ($editItem['anggota_id'] ?? 0) === (int) $anggotaOption['id_absen'] ? 'selected' : '' ?>>
+                            <option value="<?= e($anggotaOption['id_absen']) ?>" <?= (int) $selectedAnggota === (int) $anggotaOption['id_absen'] ? 'selected' : '' ?>>
                                 <?= e($anggotaOption['nama_lengkap']) ?> (<?= e(ucwords($anggotaOption['jabatan'])) ?>)
                             </option>
                         <?php endforeach; ?>
                     </select>
+                    <?php if (isset($errors['anggota_id'])): ?><div class="invalid-feedback"><?= e($errors['anggota_id'][0]) ?></div><?php endif; ?>
                 </div>
+                <?php $selectedMonth = (int) old('bulan', $editItem['bulan'] ?? date('n')); ?>
                 <div class="col-md-2">
                     <label class="form-label">Bulan</label>
-                    <select name="bulan" class="form-select" required>
+                    <select name="bulan" class="form-select <?= isset($errors['bulan']) ? 'is-invalid' : '' ?>" required>
                         <?php foreach ($months as $value => $label): ?>
-                            <option value="<?= $value ?>" <?= (int) ($editItem['bulan'] ?? date('n')) === (int) $value ? 'selected' : '' ?>><?= e($label) ?></option>
+                            <option value="<?= $value ?>" <?= $selectedMonth === (int) $value ? 'selected' : '' ?>><?= e($label) ?></option>
                         <?php endforeach; ?>
                     </select>
+                    <?php if (isset($errors['bulan'])): ?><div class="invalid-feedback"><?= e($errors['bulan'][0]) ?></div><?php endif; ?>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Tahun</label>
-                    <input type="number" name="tahun" class="form-control" value="<?= e($editItem['tahun'] ?? date('Y')) ?>" required>
+                    <input type="number" name="tahun" class="form-control <?= isset($errors['tahun']) ? 'is-invalid' : '' ?>" value="<?= e(old('tahun', $editItem['tahun'] ?? date('Y'))) ?>" required>
+                    <?php if (isset($errors['tahun'])): ?><div class="invalid-feedback"><?= e($errors['tahun'][0]) ?></div><?php endif; ?>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Nominal (Rp)</label>
-                    <input type="number" name="jumlah" class="form-control" value="<?= e($editItem['jumlah'] ?? 0) ?>" min="0" step="5000" required>
+                    <?php
+                    $jumlahPrefill = old('jumlah', $editItem['jumlah'] ?? '');
+                    if ($jumlahPrefill !== '' && is_numeric($jumlahPrefill)) {
+                        $jumlahPrefill = (string) (int) round((float) $jumlahPrefill);
+                    }
+                    ?>
+                    <input type="text" inputmode="numeric" name="jumlah" class="form-control <?= isset($errors['jumlah']) ? 'is-invalid' : '' ?>" value="<?= e($jumlahPrefill) ?>" placeholder="Contoh: 150000" required>
+                    <?php if (isset($errors['jumlah'])): ?><div class="invalid-feedback"><?= e($errors['jumlah'][0]) ?></div><?php endif; ?>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Status</label>
-                    <?php $statusVal = $editItem['status'] ?? 'belum'; ?>
-                    <select name="status" class="form-select" required>
+                    <?php $statusVal = old('status', $editItem['status'] ?? 'belum'); ?>
+                    <select name="status" class="form-select <?= isset($errors['status']) ? 'is-invalid' : '' ?>" required>
                         <option value="belum" <?= $statusVal === 'belum' ? 'selected' : '' ?>>Belum</option>
                         <option value="lunas" <?= $statusVal === 'lunas' ? 'selected' : '' ?>>Lunas</option>
                         <option value="cicil" <?= $statusVal === 'cicil' ? 'selected' : '' ?>>Cicil</option>
                     </select>
+                    <?php if (isset($errors['status'])): ?><div class="invalid-feedback"><?= e($errors['status'][0]) ?></div><?php endif; ?>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Tanggal Bayar</label>
-                    <input type="date" name="tanggal_bayar" class="form-control" value="<?= e($editItem['tanggal_bayar'] ?? '') ?>">
+                    <input type="date" name="tanggal_bayar" class="form-control <?= isset($errors['tanggal_bayar']) ? 'is-invalid' : '' ?>" value="<?= e(old('tanggal_bayar', $editItem['tanggal_bayar'] ?? '')) ?>">
+                    <?php if (isset($errors['tanggal_bayar'])): ?><div class="invalid-feedback"><?= e($errors['tanggal_bayar'][0]) ?></div><?php endif; ?>
                 </div>
                 <div class="col-md-5">
                     <label class="form-label">Catatan</label>
-                    <input type="text" name="catatan" class="form-control" maxlength="255" value="<?= e($editItem['catatan'] ?? '') ?>">
+                    <input type="text" name="catatan" class="form-control <?= isset($errors['catatan']) ? 'is-invalid' : '' ?>" maxlength="255" value="<?= e(old('catatan', $editItem['catatan'] ?? '')) ?>" placeholder="Misal: Sudah setor ke bendahara">
+                    <?php if (isset($errors['catatan'])): ?><div class="invalid-feedback"><?= e($errors['catatan'][0]) ?></div><?php endif; ?>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-success w-100">

@@ -23,7 +23,6 @@ return [
     ['POST', '/login/pengurus', [AuthController::class, 'loginPengurus'], ['csrf']],
     ['GET', '/logout', [AuthController::class, 'logout'], ['auth']],
 
-    ['GET', '/admin/login', [AuthController::class, 'showAdminLogin']],
     ['POST', '/admin/login', [AuthController::class, 'adminLogin'], ['csrf']],
 
     ['GET', '/dashboard', [AdminController::class, 'dashboard'], ['auth', 'role:administrator,superadmin,wali_kelas,ketua,wakil_ketua,bendahara,sekretaris,pengurus,anggota']],

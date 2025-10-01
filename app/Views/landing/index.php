@@ -97,20 +97,30 @@ $galleryPagination = $galleryPagination ?? null;
         <?php
         $strukturMap = [];
         foreach ($struktur as $item) {
+            if (!isset($item['jabatan'])) {
+                continue;
+            }
             $strukturMap[$item['jabatan']] = $item;
         }
 
-        $slots = [
-            'wali_kelas' => 'Wali Kelas',
-            'ketua' => 'Ketua Kelas',
-            'wakil' => 'Wakil Ketua',
-            'sekretaris' => 'Sekretaris',
-            'bendahara' => 'Bendahara',
-        ];
+        $waliEntry = $strukturMap['wali_kelas'] ?? null;
+        $ketuaEntry = $strukturMap['ketua'] ?? null;
+        $wakilEntry = $strukturMap['wakil'] ?? $strukturMap['wakil_ketua'] ?? null;
+        $bendaharaEntry = $strukturMap['bendahara'] ?? null;
+        $sekretarisEntry = $strukturMap['sekretaris'] ?? null;
 
-        $renderStrukturCard = static function (?array $entry, string $label): string {
+        $renderStrukturCard = static function (?array $entry, string $label, array $classes = []): string {
+            $baseClasses = ['struktur-node', 'text-center'];
+            if ($entry) {
+                $baseClasses[] = 'profile-card';
+            } else {
+                $baseClasses[] = 'kosong';
+            }
+            $baseClasses = array_merge($baseClasses, $classes);
+            $classAttr = implode(' ', array_map('trim', array_filter(array_unique($baseClasses))));
+
             if (!$entry) {
-                return '<div class="struktur-slot kosong"><div class="struktur-card kosong text-center"><span class="struktur-label">' . e($label) . '</span><small class="text-muted">Belum ditetapkan</small></div></div>';
+                return '<div class="' . e($classAttr) . '"><span class="struktur-label">' . e($label) . '</span><small class="text-muted">Belum ditetapkan</small></div>';
             }
 
             $imageUrl = $entry['foto'] ? '/uploads.php?path=' . urlencode($entry['foto']) : '/assets/img/avatar-placeholder.png';
@@ -134,38 +144,32 @@ $galleryPagination = $galleryPagination ?? null;
 
             ob_start();
             ?>
-            <div class="struktur-slot">
-                <div class="struktur-card profile-card text-center border-0" role="button" tabindex="0" data-profile="<?= $profileJson ?>">
-                    <div class="struktur-avatar mx-auto">
-                        <img src="<?= e($imageUrl) ?>" alt="<?= e($profile['nama_lengkap']) ?>" loading="lazy">
-                    </div>
-                    <span class="struktur-badge text-uppercase"><?= e($label) ?></span>
-                    <h5 class="fw-semibold mb-1"><?= e($profile['nama_lengkap']) ?></h5>
-                    <p class="text-muted small mb-0"><?= e($profile['panggilan']) ?></p>
+            <div class="<?= e($classAttr) ?>" role="button" tabindex="0" data-profile="<?= $profileJson ?>">
+                <div class="struktur-avatar">
+                    <img src="<?= e($imageUrl) ?>" alt="<?= e($profile['nama_lengkap']) ?>" loading="lazy">
                 </div>
+                <span class="struktur-role"><?= e($label) ?></span>
+                <div class="struktur-name"><?= e($profile['nama_lengkap']) ?></div>
+                <div class="struktur-alias"><?= e($profile['panggilan']) ?></div>
             </div>
             <?php
             return (string) ob_get_clean();
         };
         ?>
         <?php if (!empty($struktur)): ?>
-            <div class="struktur-layout">
-                <!-- Wali Kelas -->
-                <div class="struktur-row wali">
-                    <?= $renderStrukturCard($strukturMap['wali_kelas'] ?? null, 'Wali Kelas') ?>
+            <div class="struktur-tree">
+                <div class="struktur-level level-1">
+                    <?= $renderStrukturCard($waliEntry, 'Wali Kelas', ['has-children']) ?>
                 </div>
-                <!-- Ketua -->
-                <div class="struktur-row ketua">
-                    <?= $renderStrukturCard($strukturMap['ketua'] ?? null, 'Ketua Kelas') ?>
+                <div class="struktur-level level-2">
+                    <?= $renderStrukturCard($ketuaEntry, 'Ketua Kelas', ['has-children']) ?>
                 </div>
-                <!-- Wakil -->
-                <div class="struktur-row wakil">
-                    <?= $renderStrukturCard($strukturMap['wakil'] ?? null, 'Wakil Ketua') ?>
+                <div class="struktur-level level-3">
+                    <?= $renderStrukturCard($wakilEntry, 'Wakil Ketua', ['has-children']) ?>
                 </div>
-                <!-- Sekretaris & Bendahara -->
-                <div class="struktur-row duo">
-                    <?= $renderStrukturCard($strukturMap['sekretaris'] ?? null, 'Sekretaris') ?>
-                    <?= $renderStrukturCard($strukturMap['bendahara'] ?? null, 'Bendahara') ?>
+                <div class="struktur-level level-branches">
+                    <?= $renderStrukturCard($bendaharaEntry, 'Bendahara', ['branch']) ?>
+                    <?= $renderStrukturCard($sekretarisEntry, 'Sekretaris', ['branch']) ?>
                 </div>
             </div>
         <?php else: ?>

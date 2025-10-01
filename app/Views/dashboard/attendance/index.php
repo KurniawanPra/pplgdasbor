@@ -4,16 +4,32 @@ $anggotaOptions = $anggotaOptions ?? [];
 $canManage = $canManage ?? false;
 $errors = flash('errors') ?? [];
 $statusLabels = [
-    'hadir' => ['label' => 'Hadir', 'variant' => 'success'],
-    'izin' => ['label' => 'Izin', 'variant' => 'info'],
-    'sakit' => ['label' => 'Sakit', 'variant' => 'warning'],
-    'alpa' => ['label' => 'Alpa', 'variant' => 'danger'],
+    'hadir' => ['label' => 'Hadir', 'variant' => 'success', 'icon' => 'bi-check-circle-fill', 'description' => 'Hadir tepat waktu'],
+    'izin' => ['label' => 'Izin', 'variant' => 'info', 'icon' => 'bi-envelope-open', 'description' => 'Izin resmi dari wali'],
+    'sakit' => ['label' => 'Sakit', 'variant' => 'warning', 'icon' => 'bi-thermometer-half', 'description' => 'Tidak hadir karena sakit'],
+    'alpa' => ['label' => 'Alpa', 'variant' => 'danger', 'icon' => 'bi-exclamation-octagon-fill', 'description' => 'Tidak hadir tanpa keterangan'],
 ];
 ?>
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h1 class="h4 mb-1">Rekap Absensi</h1>
         <p class="text-muted mb-0">Pantau dan kelola kehadiran anggota kelas.</p>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+        <div class="d-flex flex-wrap gap-3 align-items-center">
+            <?php foreach ($statusLabels as $key => $info): ?>
+                <div class="status-legend-pill status-<?= e($key) ?>">
+                    <span class="icon"><i class="bi <?= e($info['icon']) ?>"></i></span>
+                    <div class="legend-text">
+                        <strong><?= e($info['label']) ?></strong>
+                        <small class="text-muted d-block"><?= e($info['description']) ?></small>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
     </div>
 </div>
 
@@ -109,15 +125,16 @@ $statusLabels = [
                 <tbody>
                     <?php if (!empty($items)): ?>
                         <?php foreach ($items as $row): ?>
-                            <?php $statusInfo = $statusLabels[$row['status']] ?? ['label' => ucfirst($row['status']), 'variant' => 'secondary']; ?>
-                            <tr>
+                            <?php $statusInfo = $statusLabels[$row['status']] ?? ['label' => ucfirst($row['status']), 'variant' => 'secondary', 'icon' => 'bi-circle']; ?>
+                            <tr class="attendance-row status-<?= e($row['status']) ?>">
                                 <td><?= e(date('d M Y', strtotime($row['tanggal']))) ?></td>
                                 <td>
                                     <div class="fw-semibold mb-0"><?= e($row['nama_lengkap'] ?? '-') ?></div>
                                     <small class="text-muted">NIS: <?= e($row['nis'] ?? '-') ?></small>
                                 </td>
                                 <td>
-                                    <span class="badge bg-<?= e($statusInfo['variant']) ?>-subtle text-<?= e($statusInfo['variant']) ?>">
+                                    <span class="attendance-status-badge bg-<?= e($statusInfo['variant']) ?>-subtle text-<?= e($statusInfo['variant']) ?>">
+                                        <i class="bi <?= e($statusInfo['icon']) ?>"></i>
                                         <?= e($statusInfo['label']) ?>
                                     </span>
                                 </td>

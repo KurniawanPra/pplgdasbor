@@ -8,7 +8,7 @@ class AdminOnlyMiddleware
     {
         if (!auth_check()) {
             flash('error', 'Silakan login terlebih dahulu.');
-            redirect('/admin/login');
+            redirect('/system/super/login');
             return false;
         }
 
