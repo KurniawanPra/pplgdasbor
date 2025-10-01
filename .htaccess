@@ -1,0 +1,12 @@
+RewriteEngine On
+
+RewriteRule ^(app|config|storage|sql)/ - [F,L]
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f
+RewriteRule ^ public%{REQUEST_URI} [L]
+
+RewriteRule ^ index.php [L]

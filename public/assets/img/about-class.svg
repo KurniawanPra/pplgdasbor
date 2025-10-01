@@ -1,0 +1,18 @@
+<svg width="560" height="360" viewBox="0 0 560 360" xmlns="http://www.w3.org/2000/svg">
+  <rect width="560" height="360" rx="32" fill="#eff6ff" />
+  <g transform="translate(60 60)">
+    <rect x="0" y="0" width="440" height="200" rx="24" fill="#2563eb" opacity="0.12" />
+    <rect x="30" y="30" width="180" height="140" rx="18" fill="#2563eb" opacity="0.45" />
+    <rect x="240" y="50" width="160" height="18" rx="9" fill="#1d4ed8" opacity="0.75" />
+    <rect x="240" y="80" width="200" height="16" rx="8" fill="#1d4ed8" opacity="0.35" />
+    <rect x="240" y="110" width="180" height="16" rx="8" fill="#1d4ed8" opacity="0.35" />
+    <rect x="240" y="140" width="220" height="16" rx="8" fill="#1d4ed8" opacity="0.35" />
+    <rect x="30" y="200" width="380" height="18" rx="9" fill="#2563eb" opacity="0.2" />
+  </g>
+  <g transform="translate(80 250)">
+    <circle cx="24" cy="24" r="24" fill="#2563eb" opacity="0.2" />
+    <circle cx="96" cy="24" r="24" fill="#2563eb" opacity="0.2" />
+    <circle cx="168" cy="24" r="24" fill="#2563eb" opacity="0.2" />
+    <circle cx="240" cy="24" r="24" fill="#2563eb" opacity="0.2" />
+  </g>
+</svg>

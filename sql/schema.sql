@@ -1,0 +1,141 @@
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+CREATE DATABASE IF NOT EXISTS rpltest CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE rpltest;
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nama_lengkap VARCHAR(100) NOT NULL,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('administrator','superadmin','wali_kelas','ketua','wakil_ketua','bendahara','sekretaris','pengurus','anggota') NOT NULL DEFAULT 'anggota',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS anggota (
+    id_absen INT UNSIGNED PRIMARY KEY,
+    nis VARCHAR(30) NOT NULL UNIQUE,
+    nama_lengkap VARCHAR(100) NOT NULL,
+    panggilan VARCHAR(50) NOT NULL,
+    jenis_kelamin ENUM('L','P') NOT NULL,
+    jabatan ENUM('anggota','ketua','wakil','sekretaris','bendahara') NOT NULL DEFAULT 'anggota',
+    sosmed VARCHAR(100) NULL,
+    nomor_hp VARCHAR(20) NULL,
+    email VARCHAR(100) NULL,
+    status ENUM('aktif','alumni','nonaktif') NOT NULL DEFAULT 'aktif',
+    cita_cita VARCHAR(150) NULL,
+    tujuan_hidup VARCHAR(150) NULL,
+    hobi VARCHAR(150) NULL,
+    foto VARCHAR(255) NULL,
+    user_id INT UNSIGNED NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_anggota_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS struktur_kelas (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    jabatan ENUM('wali_kelas','ketua','wakil','sekretaris','bendahara') NOT NULL UNIQUE,
+    anggota_id INT UNSIGNED NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_struktur_anggota FOREIGN KEY (anggota_id) REFERENCES anggota(id_absen) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS pengumuman (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    judul VARCHAR(150) NOT NULL,
+    isi TEXT NOT NULL,
+    audience ENUM('semua','anggota','pengurus') NOT NULL DEFAULT 'semua',
+    published_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by INT UNSIGNED NULL,
+    updated_at DATETIME NULL,
+    CONSTRAINT fk_pengumuman_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS spp_records (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    anggota_id INT UNSIGNED NOT NULL,
+    bulan TINYINT UNSIGNED NOT NULL,
+    tahun SMALLINT UNSIGNED NOT NULL,
+    jumlah DECIMAL(10,2) NOT NULL DEFAULT 0,
+    status ENUM('belum','lunas','cicil') NOT NULL DEFAULT 'belum',
+    tanggal_bayar DATE NULL,
+    catatan VARCHAR(255) NULL,
+    created_by INT UNSIGNED NULL,
+    updated_by INT UNSIGNED NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_spp (anggota_id, bulan, tahun),
+    CONSTRAINT fk_spp_anggota FOREIGN KEY (anggota_id) REFERENCES anggota(id_absen) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_spp_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT fk_spp_updated_by FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS attendance_records (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    anggota_id INT UNSIGNED NOT NULL,
+    tanggal DATE NOT NULL,
+    status ENUM('hadir','izin','sakit','alpa') NOT NULL DEFAULT 'hadir',
+    keterangan VARCHAR(255) NULL,
+    recorded_by INT UNSIGNED NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_attendance (anggota_id, tanggal),
+    CONSTRAINT fk_attendance_anggota FOREIGN KEY (anggota_id) REFERENCES anggota(id_absen) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_attendance_user FOREIGN KEY (recorded_by) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS weekly_tasks (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    judul VARCHAR(150) NOT NULL,
+    deskripsi TEXT NULL,
+    deadline DATE NULL,
+    is_completed TINYINT(1) NOT NULL DEFAULT 0,
+    created_by INT UNSIGNED NULL,
+    updated_by INT UNSIGNED NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_weekly_tasks_created FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT fk_weekly_tasks_updated FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS piket (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    hari ENUM('Senin','Selasa','Rabu','Kamis','Jumat','Sabtu') NOT NULL,
+    anggota_id INT UNSIGNED NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_piket_anggota FOREIGN KEY (anggota_id) REFERENCES anggota(id_absen) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS roster (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    hari ENUM('Senin','Selasa','Rabu','Kamis','Jumat') NOT NULL,
+    nama_mapel VARCHAR(100) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS gallery (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    judul VARCHAR(120) NOT NULL,
+    deskripsi TEXT NULL,
+    file_path VARCHAR(255) NOT NULL,
+    uploaded_by INT UNSIGNED NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_gallery_user FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS kontak (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nama VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    pesan TEXT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET FOREIGN_KEY_CHECKS = 1;
