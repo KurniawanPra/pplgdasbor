@@ -141,13 +141,13 @@ class SppController extends Controller
         }
 
         $payload = [
-            'anggota_id' => (int) $normalized['anggota_id'],
-            'bulan' => (int) $normalized['bulan'],
-            'tahun' => (int) $normalized['tahun'],
-            'jumlah' => (float) $normalized['jumlah'],
-            'status' => $normalized['status'],
-            'tanggal_bayar' => !empty($normalized['tanggal_bayar']) ? $normalized['tanggal_bayar'] : null,
-            'catatan' => !empty($normalized['catatan']) ? $normalized['catatan'] : null,
+            'anggota_id' => (int) $data['anggota_id'],
+            'bulan' => (int) $data['bulan'],
+            'tahun' => (int) $data['tahun'],
+            'jumlah' => (float) $data['jumlah'],
+            'status' => $data['status'],
+            'tanggal_bayar' => !empty($data['tanggal_bayar']) ? $data['tanggal_bayar'] : null,
+            'catatan' => !empty($data['catatan']) ? $data['catatan'] : null,
             'created_by' => auth_id(),
             'updated_by' => auth_id(),
         ];
@@ -156,7 +156,10 @@ class SppController extends Controller
             $payload['tanggal_bayar'] = date('Y-m-d');
         }
 
-        if (!empty($normalized['id'])) {
+        if (!empty($
+                   
+                   
+                   ['id'])) {
             $this->spp->update((int) $normalized['id'], $payload);
         } else {
             $this->spp->upsert($payload);
