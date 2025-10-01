@@ -11,7 +11,7 @@ class SppController extends Controller
     private Anggota $anggota;
 
     private const MANAGE_ROLES = ['administrator', 'superadmin', 'wali_kelas', 'bendahara'];
-    private const VIEW_ALL_ROLES = ['administrator', 'superadmin', 'wali_kelas', 'ketua', 'wakil_ketua', 'bendahara', 'sekretaris'];
+    private const VIEW_ALL_ROLES = ['administrator', 'superadmin', 'wali_kelas', 'ketua', 'wakil_ketua', 'bendahara', 'sekretaris', 'pengurus'];
 
     public function __construct()
     {
@@ -42,6 +42,9 @@ class SppController extends Controller
         $canManage = $this->canManage();
         $canViewAll = $this->canViewAll();
 
+        $matrixYear = $year ?: (int) date('Y');
+        $matrix = $this->spp->getMonthlyMatrix($matrixYear, $anggotaId ?: null, $keyword ?: null);
+
         if (!$canViewAll && !$canManage) {
             // fallback: anggota should not hit this route
             redirect('/dashboard/spp/me');
@@ -61,6 +64,8 @@ class SppController extends Controller
             'canManage' => $canManage,
             'editItem' => $editItem,
             'currentRole' => auth_role(),
+            'matrix' => $matrix,
+            'matrixYear' => $matrixYear,
         ], 'dashboard/layout');
     }
 
@@ -107,6 +112,14 @@ class SppController extends Controller
         }
 
         $data = $this->request();
+        $normalized = $data;
+        if (isset($normalized['jumlah'])) {
+            $digitsOnly = preg_replace('/[^0-9]/', '', (string) $normalized['jumlah']);
+            $normalized['jumlah'] = $digitsOnly !== '' ? $digitsOnly : '0';
+        }
+        unset($normalized['_token']);
+        store_old_input($normalized);
+
         $rules = [
             'anggota_id' => 'required|exists:anggota,id_absen',
             'bulan' => 'required|numeric|min:1|max:12',
@@ -116,31 +129,40 @@ class SppController extends Controller
             'tanggal_bayar' => 'nullable|date',
             'catatan' => 'nullable|max:255',
         ];
-        $errors = validate($data, $rules);
+        $errors = validate($normalized, $rules);
         if ($errors) {
             flash('errors', $errors);
             flash('error', 'Periksa kembali data SPP.');
-            redirect('/dashboard/spp');
+            $redirectUrl = '/dashboard/spp';
+            if (!empty($normalized['id'])) {
+                $redirectUrl .= '?edit=' . (int) $normalized['id'];
+            }
+            redirect($redirectUrl . '#form');
         }
 
         $payload = [
-            'anggota_id' => (int) $data['anggota_id'],
-            'bulan' => (int) $data['bulan'],
-            'tahun' => (int) $data['tahun'],
-            'jumlah' => (float) $data['jumlah'],
-            'status' => $data['status'],
-            'tanggal_bayar' => $data['tanggal_bayar'] ?: null,
-            'catatan' => $data['catatan'] ?? null,
+            'anggota_id' => (int) $normalized['anggota_id'],
+            'bulan' => (int) $normalized['bulan'],
+            'tahun' => (int) $normalized['tahun'],
+            'jumlah' => (float) $normalized['jumlah'],
+            'status' => $normalized['status'],
+            'tanggal_bayar' => !empty($normalized['tanggal_bayar']) ? $normalized['tanggal_bayar'] : null,
+            'catatan' => !empty($normalized['catatan']) ? $normalized['catatan'] : null,
             'created_by' => auth_id(),
             'updated_by' => auth_id(),
         ];
 
-        if (!empty($data['id'])) {
-            $this->spp->update((int) $data['id'], $payload);
+        if ($payload['status'] === 'lunas' && empty($payload['tanggal_bayar'])) {
+            $payload['tanggal_bayar'] = date('Y-m-d');
+        }
+
+        if (!empty($normalized['id'])) {
+            $this->spp->update((int) $normalized['id'], $payload);
         } else {
             $this->spp->upsert($payload);
         }
 
+        clear_old_input();
         flash('success', 'Data SPP berhasil disimpan.');
         redirect('/dashboard/spp');
     }

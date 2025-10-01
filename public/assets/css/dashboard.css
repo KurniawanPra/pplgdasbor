@@ -10,8 +10,14 @@ body {
 .sidebar {
     width: 240px;
     min-height: 100vh;
-    position: relative;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    display: flex;
+    flex-direction: column;
     background: linear-gradient(180deg, #1d4ed8, #4338ca);
+    overflow: hidden;
 }
 
 .sidebar .nav-link {
@@ -41,6 +47,99 @@ body {
     position: sticky;
     top: 0;
     z-index: 1020;
+}
+
+.status-legend-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.95rem;
+    border-radius: 1rem;
+    background-color: rgba(37, 99, 235, 0.08);
+    border: 1px solid rgba(37, 99, 235, 0.15);
+    min-width: 200px;
+}
+
+.status-legend-pill .icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    background: #2563eb;
+    color: #fff;
+}
+
+.status-legend-pill.status-hadir {
+    background-color: rgba(22, 163, 74, 0.08);
+    border-color: rgba(22, 163, 74, 0.2);
+}
+
+.status-legend-pill.status-hadir .icon {
+    background-color: #16a34a;
+}
+
+.status-legend-pill.status-izin {
+    background-color: rgba(14, 165, 233, 0.08);
+    border-color: rgba(14, 165, 233, 0.2);
+}
+
+.status-legend-pill.status-izin .icon {
+    background-color: #0ea5e9;
+}
+
+.status-legend-pill.status-sakit {
+    background-color: rgba(217, 119, 6, 0.1);
+    border-color: rgba(217, 119, 6, 0.25);
+}
+
+.status-legend-pill.status-sakit .icon {
+    background-color: #d97706;
+}
+
+.status-legend-pill.status-alpa {
+    background-color: rgba(220, 38, 38, 0.08);
+    border-color: rgba(220, 38, 38, 0.25);
+}
+
+.status-legend-pill.status-alpa .icon {
+    background-color: #dc2626;
+}
+
+.attendance-row {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.attendance-row.status-hadir {
+    box-shadow: inset 4px 0 0 0 rgba(22, 163, 74, 0.75);
+}
+
+.attendance-row.status-izin {
+    box-shadow: inset 4px 0 0 0 rgba(14, 165, 233, 0.75);
+}
+
+.attendance-row.status-sakit {
+    box-shadow: inset 4px 0 0 0 rgba(217, 119, 6, 0.75);
+}
+
+.attendance-row.status-alpa {
+    box-shadow: inset 4px 0 0 0 rgba(220, 38, 38, 0.75);
+}
+
+.attendance-row:hover {
+    transform: translateY(-2px);
+    box-shadow: inset 4px 0 0 0 rgba(37, 99, 235, 0.6), 0 8px 18px rgba(15, 23, 42, 0.1);
+}
+
+.attendance-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: 999px;
+    padding: 0.35rem 0.85rem;
+    font-weight: 600;
 }
 
 .avatar {

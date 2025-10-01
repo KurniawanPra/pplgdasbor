@@ -19,6 +19,35 @@ $yearRange = range($currentYear + 1, $currentYear - 5);
 $editItem = $editItem ?? null;
 $canManage = $canManage ?? false;
 $anggotaOptions = $anggotaOptions ?? [];
+$matrix = $matrix ?? [];
+$matrixYear = $matrixYear ?? (int) date('Y');
+$errors = flash('errors') ?? [];
+$statusBadge = static function (?array $entry) {
+    if (!$entry) {
+        return '<span class="badge rounded-pill text-bg-light">-</span>';
+    }
+
+    $map = [
+        'lunas' => ['label' => 'Lunas', 'class' => 'text-bg-success'],
+        'cicil' => ['label' => 'Cicil', 'class' => 'text-bg-warning'],
+        'belum' => ['label' => 'Belum', 'class' => 'text-bg-secondary'],
+    ];
+
+    $status = strtolower($entry['status']);
+    $meta = $map[$status] ?? ['label' => ucfirst($status), 'class' => 'text-bg-secondary'];
+    $tooltip = 'Status: ' . $meta['label'];
+    if (!empty($entry['jumlah'])) {
+        $tooltip .= "\nNominal: Rp" . number_format((float) $entry['jumlah'], 0, ',', '.');
+    }
+    if (!empty($entry['tanggal_bayar'])) {
+        $tooltip .= "\nTanggal bayar: " . date('d M Y', strtotime($entry['tanggal_bayar']));
+    }
+    if (!empty($entry['catatan'])) {
+        $tooltip .= "\nCatatan: " . $entry['catatan'];
+    }
+
+    return '<span class="badge rounded-pill ' . e($meta['class']) . '" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="false" title="' . e($tooltip) . '">' . e(substr($meta['label'], 0, 1)) . '</span>';
+};
 ?>
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
@@ -84,49 +113,64 @@ $anggotaOptions = $anggotaOptions ?? [];
                 <?php if ($editItem): ?>
                     <input type="hidden" name="id" value="<?= e($editItem['id']) ?>">
                 <?php endif; ?>
+                <?php $selectedAnggota = old('anggota_id', $editItem['anggota_id'] ?? ''); ?>
                 <div class="col-md-4">
                     <label class="form-label">Anggota</label>
-                    <select name="anggota_id" class="form-select" required>
+                    <select name="anggota_id" class="form-select <?= isset($errors['anggota_id']) ? 'is-invalid' : '' ?>" required>
                         <option value="">-- Pilih anggota --</option>
                         <?php foreach ($anggotaOptions as $anggotaOption): ?>
-                            <option value="<?= e($anggotaOption['id_absen']) ?>" <?= (int) ($editItem['anggota_id'] ?? 0) === (int) $anggotaOption['id_absen'] ? 'selected' : '' ?>>
+                            <option value="<?= e($anggotaOption['id_absen']) ?>" <?= (int) $selectedAnggota === (int) $anggotaOption['id_absen'] ? 'selected' : '' ?>>
                                 <?= e($anggotaOption['nama_lengkap']) ?> (<?= e(ucwords($anggotaOption['jabatan'])) ?>)
                             </option>
                         <?php endforeach; ?>
                     </select>
+                    <?php if (isset($errors['anggota_id'])): ?><div class="invalid-feedback"><?= e($errors['anggota_id'][0]) ?></div><?php endif; ?>
                 </div>
+                <?php $selectedMonth = (int) old('bulan', $editItem['bulan'] ?? date('n')); ?>
                 <div class="col-md-2">
                     <label class="form-label">Bulan</label>
-                    <select name="bulan" class="form-select" required>
+                    <select name="bulan" class="form-select <?= isset($errors['bulan']) ? 'is-invalid' : '' ?>" required>
                         <?php foreach ($months as $value => $label): ?>
-                            <option value="<?= $value ?>" <?= (int) ($editItem['bulan'] ?? date('n')) === (int) $value ? 'selected' : '' ?>><?= e($label) ?></option>
+                            <option value="<?= $value ?>" <?= $selectedMonth === (int) $value ? 'selected' : '' ?>><?= e($label) ?></option>
                         <?php endforeach; ?>
                     </select>
+                    <?php if (isset($errors['bulan'])): ?><div class="invalid-feedback"><?= e($errors['bulan'][0]) ?></div><?php endif; ?>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Tahun</label>
-                    <input type="number" name="tahun" class="form-control" value="<?= e($editItem['tahun'] ?? date('Y')) ?>" required>
+                    <input type="number" name="tahun" class="form-control <?= isset($errors['tahun']) ? 'is-invalid' : '' ?>" value="<?= e(old('tahun', $editItem['tahun'] ?? date('Y'))) ?>" required>
+                    <?php if (isset($errors['tahun'])): ?><div class="invalid-feedback"><?= e($errors['tahun'][0]) ?></div><?php endif; ?>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Nominal (Rp)</label>
-                    <input type="number" name="jumlah" class="form-control" value="<?= e($editItem['jumlah'] ?? 0) ?>" min="0" step="5000" required>
+                    <?php
+                    $jumlahPrefill = old('jumlah', $editItem['jumlah'] ?? '');
+                    if ($jumlahPrefill !== '' && is_numeric($jumlahPrefill)) {
+                        $jumlahPrefill = (string) (int) round((float) $jumlahPrefill);
+                    }
+                    ?>
+                    <input type="text" inputmode="numeric" name="jumlah" class="form-control <?= isset($errors['jumlah']) ? 'is-invalid' : '' ?>" value="<?= e($jumlahPrefill) ?>" placeholder="Contoh: 150000" required>
+                    <?php if (isset($errors['jumlah'])): ?><div class="invalid-feedback"><?= e($errors['jumlah'][0]) ?></div><?php endif; ?>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Status</label>
-                    <?php $statusVal = $editItem['status'] ?? 'belum'; ?>
-                    <select name="status" class="form-select" required>
+                    <?php $statusVal = old('status', $editItem['status'] ?? 'belum'); ?>
+                    <select name="status" class="form-select <?= isset($errors['status']) ? 'is-invalid' : '' ?>" required>
                         <option value="belum" <?= $statusVal === 'belum' ? 'selected' : '' ?>>Belum</option>
                         <option value="lunas" <?= $statusVal === 'lunas' ? 'selected' : '' ?>>Lunas</option>
                         <option value="cicil" <?= $statusVal === 'cicil' ? 'selected' : '' ?>>Cicil</option>
                     </select>
+                    <?php if (isset($errors['status'])): ?><div class="invalid-feedback"><?= e($errors['status'][0]) ?></div><?php endif; ?>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Tanggal Bayar</label>
-                    <input type="date" name="tanggal_bayar" class="form-control" value="<?= e($editItem['tanggal_bayar'] ?? '') ?>">
+                    <input type="date" name="tanggal_bayar" class="form-control <?= isset($errors['tanggal_bayar']) ? 'is-invalid' : '' ?>" value="<?= e(old('tanggal_bayar', $editItem['tanggal_bayar'] ?? '')) ?>">
+                    <?php if (isset($errors['tanggal_bayar'])): ?><div class="invalid-feedback"><?= e($errors['tanggal_bayar'][0]) ?></div><?php endif; ?>
                 </div>
                 <div class="col-md-5">
                     <label class="form-label">Catatan</label>
-                    <input type="text" name="catatan" class="form-control" maxlength="255" value="<?= e($editItem['catatan'] ?? '') ?>">
+                    <input type="text" name="catatan" class="form-control <?= isset($errors['catatan']) ? 'is-invalid' : '' ?>" maxlength="255" value="<?= e(old('catatan', $editItem['catatan'] ?? '')) ?>" placeholder="Misal: Sudah setor ke bendahara">
+                    <?php if (isset($errors['catatan'])): ?><div class="invalid-feedback"><?= e($errors['catatan'][0]) ?></div><?php endif; ?>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-success w-100">
@@ -137,6 +181,51 @@ $anggotaOptions = $anggotaOptions ?? [];
         </div>
     </div>
 <?php endif; ?>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white border-0 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+        <div>
+            <h2 class="h5 mb-0">Rekap SPP Bulanan <?= e($matrixYear) ?></h2>
+            <p class="text-muted small mb-0">Pantau kelengkapan pembayaran setiap bulan untuk anggota yang sesuai filter.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2 small text-muted">
+            <span class="badge rounded-pill text-bg-success">L</span> <span>Lunas</span>
+            <span class="badge rounded-pill text-bg-warning">C</span> <span>Cicil</span>
+            <span class="badge rounded-pill text-bg-secondary">B</span> <span>Belum</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <?php if (!empty($matrix)): ?>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle mb-0 text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-start">Anggota</th>
+                            <?php foreach ($months as $value => $label): ?>
+                                <th class="small fw-semibold"><?= e(substr($label, 0, 3)) ?></th>
+                            <?php endforeach; ?>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($matrix as $row): ?>
+                            <tr>
+                                <td class="text-start">
+                                    <div class="fw-semibold mb-0"><?= e($row['info']['nama_lengkap']) ?></div>
+                                    <small class="text-muted">NIS: <?= e($row['info']['nis'] ?? '-') ?></small>
+                                </td>
+                                <?php foreach ($row['months'] as $monthValue => $entry): ?>
+                                    <td><?= $statusBadge($entry) ?></td>
+                                <?php endforeach; ?>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php else: ?>
+            <div class="p-4 text-center text-muted">Belum ada data anggota atau catatan SPP untuk rekap tahun ini.</div>
+        <?php endif; ?>
+    </div>
+</div>
 
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">
@@ -220,3 +309,12 @@ $anggotaOptions = $anggotaOptions ?? [];
         </div>
     <?php endif; ?>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = Array.prototype.slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+            new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
