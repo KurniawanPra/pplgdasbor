@@ -161,7 +161,7 @@ class SppController extends Controller
         } else {
             $this->spp->upsert($payload);
         }
-
+      
         clear_old_input();
         flash('success', 'Data SPP berhasil disimpan.');
         redirect('/dashboard/spp');
