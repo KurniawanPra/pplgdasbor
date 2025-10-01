@@ -11,7 +11,7 @@ class SppController extends Controller
     private Anggota $anggota;
 
     private const MANAGE_ROLES = ['administrator', 'superadmin', 'wali_kelas', 'bendahara'];
-    private const VIEW_ALL_ROLES = ['administrator', 'superadmin', 'wali_kelas', 'ketua', 'wakil_ketua', 'bendahara', 'sekretaris'];
+    private const VIEW_ALL_ROLES = ['administrator', 'superadmin', 'wali_kelas', 'ketua', 'wakil_ketua', 'bendahara', 'sekretaris', 'pengurus'];
 
     public function __construct()
     {
@@ -42,6 +42,9 @@ class SppController extends Controller
         $canManage = $this->canManage();
         $canViewAll = $this->canViewAll();
 
+        $matrixYear = $year ?: (int) date('Y');
+        $matrix = $this->spp->getMonthlyMatrix($matrixYear, $anggotaId ?: null, $keyword ?: null);
+
         if (!$canViewAll && !$canManage) {
             // fallback: anggota should not hit this route
             redirect('/dashboard/spp/me');
@@ -61,6 +64,8 @@ class SppController extends Controller
             'canManage' => $canManage,
             'editItem' => $editItem,
             'currentRole' => auth_role(),
+            'matrix' => $matrix,
+            'matrixYear' => $matrixYear,
         ], 'dashboard/layout');
     }
 
@@ -129,8 +134,8 @@ class SppController extends Controller
             'tahun' => (int) $data['tahun'],
             'jumlah' => (float) $data['jumlah'],
             'status' => $data['status'],
-            'tanggal_bayar' => $data['tanggal_bayar'] ?: null,
-            'catatan' => $data['catatan'] ?? null,
+            'tanggal_bayar' => !empty($data['tanggal_bayar']) ? $data['tanggal_bayar'] : null,
+            'catatan' => !empty($data['catatan']) ? $data['catatan'] : null,
             'created_by' => auth_id(),
             'updated_by' => auth_id(),
         ];

@@ -7,10 +7,50 @@ use PDO;
 class Spp
 {
     private PDO $db;
+    private static bool $tableEnsured = false;
 
     public function __construct()
     {
         $this->db = db();
+        if (!self::$tableEnsured) {
+            $this->ensureTable();
+            self::$tableEnsured = true;
+        }
+    }
+
+    private function ensureTable(): void
+    {
+        $stmt = $this->db->query(
+            "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'spp_records'"
+        );
+        $exists = (int) $stmt->fetchColumn() > 0;
+
+        if ($exists) {
+            return;
+        }
+
+        $sql = <<<'SQL'
+CREATE TABLE IF NOT EXISTS spp_records (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    anggota_id INT UNSIGNED NOT NULL,
+    bulan TINYINT UNSIGNED NOT NULL,
+    tahun SMALLINT UNSIGNED NOT NULL,
+    jumlah DECIMAL(10,2) NOT NULL DEFAULT 0,
+    status ENUM('belum','lunas','cicil') NOT NULL DEFAULT 'belum',
+    tanggal_bayar DATE NULL,
+    catatan VARCHAR(255) NULL,
+    created_by INT UNSIGNED NULL,
+    updated_by INT UNSIGNED NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_spp (anggota_id, bulan, tahun),
+    CONSTRAINT fk_spp_anggota FOREIGN KEY (anggota_id) REFERENCES anggota(id_absen) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_spp_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT fk_spp_updated_by FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+SQL;
+
+        $this->db->exec($sql);
     }
 
     public function paginate(int $page, int $perPage, ?int $anggotaId = null, ?int $year = null, ?int $month = null, ?string $keyword = null): array
@@ -142,5 +182,87 @@ class Spp
         $stmt = $this->db->prepare('SELECT bulan, COUNT(*) AS total_record, SUM(CASE WHEN status = "lunas" THEN 1 ELSE 0 END) AS total_lunas FROM spp_records WHERE tahun = :tahun GROUP BY bulan ORDER BY bulan');
         $stmt->execute([':tahun' => $tahun]);
         return $stmt->fetchAll();
+    }
+
+    public function getMonthlyMatrix(int $tahun, ?int $anggotaId = null, ?string $keyword = null): array
+    {
+        $anggotaSql = 'SELECT id_absen, nama_lengkap, panggilan, nis FROM anggota';
+        $conds = [];
+        $params = [];
+
+        if ($anggotaId) {
+            $conds[] = 'id_absen = :anggota_id';
+            $params[':anggota_id'] = $anggotaId;
+        }
+
+        if ($keyword) {
+            $conds[] = '(nama_lengkap LIKE :keyword OR panggilan LIKE :keyword OR nis LIKE :keyword)';
+            $params[':keyword'] = '%' . $keyword . '%';
+        }
+
+        if ($conds) {
+            $anggotaSql .= ' WHERE ' . implode(' AND ', $conds);
+        }
+
+        $anggotaSql .= ' ORDER BY nama_lengkap ASC';
+        $anggotaStmt = $this->db->prepare($anggotaSql);
+        foreach ($params as $key => $value) {
+            $anggotaStmt->bindValue($key, $value, $key === ':anggota_id' ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
+        $anggotaStmt->execute();
+        $anggotaList = $anggotaStmt->fetchAll();
+
+        if (empty($anggotaList)) {
+            return [];
+        }
+
+        $matrix = [];
+        foreach ($anggotaList as $row) {
+            $matrix[(int) $row['id_absen']] = [
+                'info' => $row,
+                'months' => array_fill(1, 12, null),
+            ];
+        }
+
+        $recordsSql = 'SELECT spp.*, a.id_absen FROM spp_records spp '
+            . 'JOIN anggota a ON a.id_absen = spp.anggota_id '
+            . 'WHERE spp.tahun = :tahun';
+        $recordParams = [':tahun' => $tahun];
+
+        if ($anggotaId) {
+            $recordsSql .= ' AND spp.anggota_id = :anggota_id';
+            $recordParams[':anggota_id'] = $anggotaId;
+        }
+
+        if ($keyword) {
+            $recordsSql .= ' AND (a.nama_lengkap LIKE :record_keyword OR a.panggilan LIKE :record_keyword OR a.nis LIKE :record_keyword)';
+            $recordParams[':record_keyword'] = '%' . $keyword . '%';
+        }
+
+        $recordsSql .= ' ORDER BY a.nama_lengkap ASC, spp.bulan ASC';
+
+        $recordsStmt = $this->db->prepare($recordsSql);
+        foreach ($recordParams as $key => $value) {
+            $recordsStmt->bindValue($key, $value, in_array($key, [':tahun', ':anggota_id'], true) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
+        $recordsStmt->execute();
+        $records = $recordsStmt->fetchAll();
+
+        foreach ($records as $record) {
+            $memberId = (int) $record['id_absen'];
+            $month = (int) $record['bulan'];
+            if (!isset($matrix[$memberId]) || $month < 1 || $month > 12) {
+                continue;
+            }
+
+            $matrix[$memberId]['months'][$month] = [
+                'status' => $record['status'],
+                'jumlah' => $record['jumlah'],
+                'tanggal_bayar' => $record['tanggal_bayar'],
+                'catatan' => $record['catatan'],
+            ];
+        }
+
+        return array_values($matrix);
     }
 }

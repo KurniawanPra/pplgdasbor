@@ -19,6 +19,34 @@ $yearRange = range($currentYear + 1, $currentYear - 5);
 $editItem = $editItem ?? null;
 $canManage = $canManage ?? false;
 $anggotaOptions = $anggotaOptions ?? [];
+$matrix = $matrix ?? [];
+$matrixYear = $matrixYear ?? (int) date('Y');
+$statusBadge = static function (?array $entry) {
+    if (!$entry) {
+        return '<span class="badge rounded-pill text-bg-light">-</span>';
+    }
+
+    $map = [
+        'lunas' => ['label' => 'Lunas', 'class' => 'text-bg-success'],
+        'cicil' => ['label' => 'Cicil', 'class' => 'text-bg-warning'],
+        'belum' => ['label' => 'Belum', 'class' => 'text-bg-secondary'],
+    ];
+
+    $status = strtolower($entry['status']);
+    $meta = $map[$status] ?? ['label' => ucfirst($status), 'class' => 'text-bg-secondary'];
+    $tooltip = 'Status: ' . $meta['label'];
+    if (!empty($entry['jumlah'])) {
+        $tooltip .= "\nNominal: Rp" . number_format((float) $entry['jumlah'], 0, ',', '.');
+    }
+    if (!empty($entry['tanggal_bayar'])) {
+        $tooltip .= "\nTanggal bayar: " . date('d M Y', strtotime($entry['tanggal_bayar']));
+    }
+    if (!empty($entry['catatan'])) {
+        $tooltip .= "\nCatatan: " . $entry['catatan'];
+    }
+
+    return '<span class="badge rounded-pill ' . e($meta['class']) . '" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="false" title="' . e($tooltip) . '">' . e(substr($meta['label'], 0, 1)) . '</span>';
+};
 ?>
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
@@ -138,6 +166,51 @@ $anggotaOptions = $anggotaOptions ?? [];
     </div>
 <?php endif; ?>
 
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white border-0 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+        <div>
+            <h2 class="h5 mb-0">Rekap SPP Bulanan <?= e($matrixYear) ?></h2>
+            <p class="text-muted small mb-0">Pantau kelengkapan pembayaran setiap bulan untuk anggota yang sesuai filter.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2 small text-muted">
+            <span class="badge rounded-pill text-bg-success">L</span> <span>Lunas</span>
+            <span class="badge rounded-pill text-bg-warning">C</span> <span>Cicil</span>
+            <span class="badge rounded-pill text-bg-secondary">B</span> <span>Belum</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <?php if (!empty($matrix)): ?>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle mb-0 text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-start">Anggota</th>
+                            <?php foreach ($months as $value => $label): ?>
+                                <th class="small fw-semibold"><?= e(substr($label, 0, 3)) ?></th>
+                            <?php endforeach; ?>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($matrix as $row): ?>
+                            <tr>
+                                <td class="text-start">
+                                    <div class="fw-semibold mb-0"><?= e($row['info']['nama_lengkap']) ?></div>
+                                    <small class="text-muted">NIS: <?= e($row['info']['nis'] ?? '-') ?></small>
+                                </td>
+                                <?php foreach ($row['months'] as $monthValue => $entry): ?>
+                                    <td><?= $statusBadge($entry) ?></td>
+                                <?php endforeach; ?>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php else: ?>
+            <div class="p-4 text-center text-muted">Belum ada data anggota atau catatan SPP untuk rekap tahun ini.</div>
+        <?php endif; ?>
+    </div>
+</div>
+
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -220,3 +293,12 @@ $anggotaOptions = $anggotaOptions ?? [];
         </div>
     <?php endif; ?>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = Array.prototype.slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+            new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
